@@ -23,3 +23,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             password_hash=hash_password(password)
         )
         return user
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
