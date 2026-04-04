@@ -62,3 +62,48 @@ class LoginView(APIView):
         return Response({
             "token": str(token.token)
         })
+
+
+class LogoutView(APIView):
+
+    def post(self, request):
+        user = get_user_from_token(request)
+        if not user:
+            return Response({"error": "Unauthorized"}, status=401)
+
+        token = request.headers.get("Authorization").split(" ")[1]
+        AuthToken.objects.filter(token=token).delete()
+
+        return Response({"message": "Logged out successfully"})
+
+
+class DeleteUserView(APIView):
+
+    def delete(self, request):
+        user = get_user_from_token(request)
+        if not user:
+            return Response({"error": "Unauthorized"}, status=401)
+
+        user.is_active = False
+        user.save()
+
+        token = request.headers.get("Authorization").split(" ")[1]
+        AuthToken.objects.filter(token=token).delete()
+
+        return Response({"message": "User deactivated"})
+
+
+class UpdateProfileView(APIView):
+
+    def put(self, request):
+        user = get_user_from_token(request)
+        if not user:
+            return Response({"error": "Unauthorized"}, status=401)
+
+        user.first_name = request.data.get("first_name", user.first_name)
+        user.last_name = request.data.get("last_name", user.last_name)
+        user.middle_name = request.data.get("middle_name", user.middle_name)
+
+        user.save()
+
+        return Response({"message": "Profile updated"})
