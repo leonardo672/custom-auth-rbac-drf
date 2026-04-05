@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.urls import path
-from .views import RegisterView, UserListView, LoginView, LogoutView, DeleteUserView, UpdateProfileView, MeView, AdminCreateUserView, ChangeUserRoleView
+from .views import RegisterView, UserListView, LoginView, LogoutView, DeleteUserView, UpdateProfileView, MeView, AdminCreateUserView, ChangeUserRoleView, ProjectsView, ReportsView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -14,6 +14,6 @@ urlpatterns = [
     path("me/", MeView.as_view()),
     path("admin/create-user/", AdminCreateUserView.as_view()),
     path("admin/change-role/<int:user_id>/", ChangeUserRoleView.as_view()),
-
-
+    path("projects/", ProjectsView.as_view()),
+    path("reports/", ReportsView.as_view()),
 ]

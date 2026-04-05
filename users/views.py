@@ -214,3 +214,52 @@ class ChangeUserRoleView(APIView):
             "user_id": user.id,
             "role": user.role
         })
+
+
+class ProjectsView(APIView):
+
+    def get(self, request):
+        user = get_user_from_token(request)
+
+        if not user:
+            return Response({"error": "Unauthorized"}, status=401)
+
+        # USER sees limited data
+        if user.role == "USER":
+            data = [
+                {"id": 1, "name": "Public Project"},
+                {"id": 2, "name": "Demo Project"}
+            ]
+            return Response(data)
+
+        # ADMIN sees full data
+        if user.role == "ADMIN":
+            data = [
+                {"id": 1, "name": "Public Project"},
+                {"id": 2, "name": "Demo Project"},
+                {"id": 3, "name": "Internal Project"},
+                {"id": 4, "name": "Secret Project"}
+            ]
+            return Response(data)
+
+        return Response({"error": "Forbidden"}, status=403)
+
+
+class ReportsView(APIView):
+
+    def get(self, request):
+        user = get_user_from_token(request)
+
+        if not user:
+            return Response({"error": "Unauthorized"}, status=401)
+
+        if user.role != "ADMIN":
+            return Response({"error": "Forbidden"}, status=403)
+
+        data = [
+            {"id": 1, "title": "System Report"},
+            {"id": 2, "title": "Users Report"},
+            {"id": 3, "title": "Security Report"}
+        ]
+
+        return Response(data)
