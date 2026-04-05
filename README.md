@@ -1,81 +1,81 @@
-# Custom Authentication & Authorization System (RBAC)
+# Пользовательская система аутентификации и авторизации (RBAC)
 
-## Overview
+## Обзор
 
-This project implements a **custom authentication and authorization system** without relying on built-in framework authentication mechanisms.
-The system provides:
+Проект реализует **пользовательскую систему аутентификации и авторизации**, без использования встроенных механизмов фреймворка.
+Система обеспечивает:
 
-* User registration and authentication
-* Token-based session management
-* Soft user deletion
-* Role-based access control (RBAC)
-* Admin-managed access rules
-* Protected resource endpoints
-* Proper HTTP status handling (401 / 403)
-
----
-
-# Architecture
-
-The system consists of three main components:
-
-1. Authentication System
-2. Role-Based Access Control (RBAC)
-3. Protected Business Resources (Mock Views)
+* Регистрацию и аутентификацию пользователей
+* Управление сессиями на основе токенов
+* Мягкое удаление пользователей
+* Управление доступом на основе ролей (RBAC)
+* Администраторское управление правилами доступа
+* Защищённые конечные точки ресурсов
+* Корректную обработку HTTP-статусов (401 / 403)
 
 ---
 
-# Database Schema
+# Архитектура
 
-## User Table
+Система состоит из трёх основных компонентов:
 
-Stores user account information.
+1. Система аутентификации
+2. Управление доступом на основе ролей (RBAC)
+3. Защищённые бизнес-ресурсы (Mock Views)
 
-Fields:
+---
+
+# Схема базы данных
+
+## Таблица User
+
+Хранит информацию об учетных записях пользователей.
+
+Поля:
 
 * id (PK)
 * first_name
 * last_name
 * middle_name
-* email (unique)
+* email (уникальный)
 * password_hash
 * role (USER / ADMIN)
-* is_active (soft delete flag)
+* is_active (флаг мягкого удаления)
 * created_at
 * updated_at
 
-### Roles
+### Роли
 
-Two roles are supported:
+Поддерживаются две роли:
 
-* USER — default role for registered users
-* ADMIN — full access to manage users and permissions
+* USER — роль по умолчанию для зарегистрированных пользователей
+* ADMIN — полный доступ для управления пользователями и правами
 
 ---
 
-## AuthToken Table
+## Таблица AuthToken
 
-Stores active login sessions.
+Хранит активные сессии входа.
 
-Fields:
+Поля:
 
 * token (UUID)
 * user (FK → User)
 * created_at
 
-This table is used to identify users in subsequent requests.
+Используется для идентификации пользователей при последующих запросах.
 
 ---
 
-# Authentication Flow
+# Поток аутентификации
 
-## Registration
+## Регистрация
 
-Endpoint:
+**Эндпоинт:**
 
 POST /api/register/
 
-Required fields:
+Обязательные поля:
 
 * first_name
 * last_name
@@ -84,37 +84,37 @@ Required fields:
 * password
 * confirm_password
 
-Behavior:
+Поведение:
 
-* Passwords must match
-* Password is hashed
-* Default role = USER
-* User created with is_active = True
+* Пароли должны совпадать
+* Пароль хэшируется
+* Роль по умолчанию = USER
+* Пользователь создаётся с is_active = True
 
 ---
 
-## Login
+## Вход
 
-Endpoint:
+**Эндпоинт:**
 
 POST /api/login/
 
-Input:
+Входные данные:
 
 * email
 * password
 
-Behavior:
+Поведение:
 
-* Validate credentials
-* Check is_active
-* Generate UUID token
-* Store token in AuthToken table
-* Return token
+* Проверка данных
+* Проверка активности пользователя
+* Генерация UUID токена
+* Сохранение токена в таблице AuthToken
+* Возврат токена
 
-Response:
+Пример ответа:
 
-```
+```json
 {
   "token": "uuid-token"
 }
@@ -122,58 +122,58 @@ Response:
 
 ---
 
-## Authentication for Requests
+## Аутентификация запросов
 
-All protected endpoints require header:
+Все защищённые эндпоинты требуют заголовок:
 
 Authorization: Bearer <token>
 
-System behavior:
+Поведение системы:
 
-* Extract token
-* Find user from AuthToken table
-* Attach user to request
-* If token missing → 401
-* If invalid token → 401
-* If user inactive → 403
+* Извлечение токена
+* Поиск пользователя в таблице AuthToken
+* Присвоение пользователя запросу
+* Если токен отсутствует → 401
+* Если токен некорректный → 401
+* Если пользователь неактивен → 403
 
 ---
 
-## Logout
+## Выход (Logout)
 
-Endpoint:
+**Эндпоинт:**
 
 POST /api/logout/
 
-Behavior:
+Поведение:
 
-* Remove token from database
-* User becomes unauthorized
+* Удаление токена из базы
+* Пользователь теряет авторизацию
 
 ---
 
-## Soft Delete User
+## Мягкое удаление пользователя
 
-Endpoint:
+**Эндпоинт:**
 
 DELETE /api/delete/
 
-Behavior:
+Поведение:
 
-* Set is_active = False
-* Delete token
-* User cannot login again
-* Account remains in database
+* Установка is_active = False
+* Удаление токена
+* Пользователь не может войти снова
+* Учётная запись остаётся в базе
 
 ---
 
-## Update Profile
+## Обновление профиля
 
-Endpoint:
+**Эндпоинт:**
 
 PUT /api/profile/
 
-User can update:
+Пользователь может обновить:
 
 * first_name
 * last_name
@@ -181,59 +181,59 @@ User can update:
 
 ---
 
-# Role-Based Access Control (RBAC)
+# Управление доступом на основе ролей (RBAC)
 
-Access control is implemented using **roles**.
+Контроль доступа реализован через **роли**.
 
-Roles stored in:
+Роли хранятся в:
 
 User.role
 
-Supported roles:
+Поддерживаемые роли:
 
 * USER
 * ADMIN
 
 ---
 
-# Admin Permissions
+# Права администратора
 
-Only ADMIN users can:
+Только пользователи с ролью ADMIN могут:
 
-* Get all users
-* Create users
-* Change user roles
-* Access admin-only resources
+* Получить всех пользователей
+* Создавать пользователей
+* Изменять роли пользователей
+* Доступ к ресурсам только для администраторов
 
 ---
 
-# Admin Endpoints
+# Админские эндпоинты
 
-## Get Current User
+## Получить текущего пользователя
 
 GET /api/me/
 
-Returns authenticated user info.
+Возвращает информацию о текущем пользователе.
 
 ---
 
-## Get Users (Admin Only)
+## Получить пользователей (только для ADMIN)
 
 GET /api/users/
 
-Responses:
+Ответы:
 
-401 → not authenticated
-403 → not admin
-200 → list of users
+401 → не аутентифицирован
+403 → не ADMIN
+200 → список пользователей
 
 ---
 
-## Admin Create User
+## Создание пользователя администратором
 
 POST /api/admin/create-user/
 
-Required fields:
+Обязательные поля:
 
 * first_name
 * last_name
@@ -241,129 +241,127 @@ Required fields:
 * email
 * password
 * confirm_password
-* role (USER or ADMIN)
+* role (USER или ADMIN)
 
-Behavior:
+Поведение:
 
-* Admin only
-* Password validation
-* Password hashing
-* Role assignment
+* Только для ADMIN
+* Валидация пароля
+* Хэширование пароля
+* Назначение роли
 
 ---
 
-## Change User Role
+## Изменение роли пользователя
 
 PATCH /api/admin/change-role/{user_id}/
 
-Body:
+Тело запроса:
 
-```
+```json
 {
   "role": "ADMIN"
 }
 ```
 
-Behavior:
+Поведение:
 
-* Admin only
-* Updates user role
-
----
-
-# Authorization Rules
-
-| Condition             | Response         |
-| --------------------- | ---------------- |
-| No token              | 401 Unauthorized |
-| Invalid token         | 401 Unauthorized |
-| User inactive         | 403 Forbidden    |
-| User lacks permission | 403 Forbidden    |
-| Authorized access     | 200 OK           |
+* Только для ADMIN
+* Обновление роли пользователя
 
 ---
 
-# Mock Business Resources
+# Правила авторизации
 
-The system supports protected business resources.
+| Условие                | Ответ            |
+| ---------------------- | ---------------- |
+| Нет токена             | 401 Unauthorized |
+| Некорректный токен     | 401 Unauthorized |
+| Пользователь неактивен | 403 Forbidden    |
+| Нет прав               | 403 Forbidden    |
+| Разрешённый доступ     | 200 OK           |
 
-Example:
+---
+
+# Пример защищённых бизнес-ресурсов
+
+Примеры:
 
 GET /api/projects/
 GET /api/reports/
 
-Behavior:
+Поведение:
 
-* Not logged in → 401
-* Logged in USER → limited access
-* ADMIN → full access
+* Не вошедший → 401
+* USER → ограниченный доступ
+* ADMIN → полный доступ
 
-These endpoints demonstrate RBAC functionality.
-
----
-
-# Security Features
-
-* Custom token authentication
-* Password hashing
-* Soft delete users
-* Role-based permissions
-* Admin-only endpoints
-* Token invalidation on logout
-* Token-based request identification
+Демонстрация функциональности RBAC.
 
 ---
 
-# Access Control Design Summary
+# Особенности безопасности
 
-Authentication → identifies user
-Authorization → checks role
-RBAC → controls access
-Admin API → modifies permissions
-
-Flow:
-
-Login → receive token
-Token → identify user
-User role → check permission
-Permission OK → return resource
-Permission denied → 403
+* Пользовательская аутентификация через токены
+* Хэширование паролей
+* Мягкое удаление пользователей
+* Разрешения на основе ролей
+* Эндпоинты только для ADMIN
+* Инвалидация токена при выходе
+* Идентификация запросов через токены
 
 ---
 
-# Default Test Roles
+# Сводка контроля доступа
 
-Admin user:
+Аутентификация → идентификация пользователя
+Авторизация → проверка роли
+RBAC → контроль доступа
+API администратора → изменение разрешений
+
+Поток:
+
+Login → получение токена
+Token → идентификация пользователя
+User role → проверка разрешений
+Разрешение OK → возврат ресурса
+Разрешение запрещено → 403
+
+---
+
+# Роли по умолчанию
+
+Админ:
 
 role = ADMIN
 
-Regular user:
+Обычный пользователь:
 
 role = USER
 
 ---
 
-# HTTP Status Codes
+# HTTP-статусы
 
-| Code | Meaning                      |
-| ---- | ---------------------------- |
-| 200  | Success                      |
-| 201  | Created                      |
-| 400  | Validation error             |
-| 401  | Unauthorized (not logged in) |
-| 403  | Forbidden (no permission)    |
-| 404  | Not found                    |
+| Код | Значение         |
+| --- | ---------------- |
+| 200 | Успех            |
+| 201 | Создано          |
+| 400 | Ошибка валидации |
+| 401 | Не авторизован   |
+| 403 | Запрещено        |
+| 404 | Не найдено       |
 
 ---
 
-# Conclusion
+# Заключение
 
-This project implements a fully custom:
+Проект реализует полностью пользовательскую:
 
-* Authentication system
-* Token session management
-* Role-based authorization
-* Admin-controlled permissions
-* Protected resource access
+* Систему аутентификации
+* Управление сессиями через токены
+* Авторизацию по ролям
+* Контроль прав через администратора
+* Доступ к защищённым ресурсам
 
-The system does not rely on built-in framework authentication and demonstrates a complete RBAC architecture.
+Система не использует встроенные механизмы фреймворка и демонстрирует полноценную архитектуру RBAC.
