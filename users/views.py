@@ -21,19 +21,21 @@ class UserListView(APIView):
         if not user:
             return Response({"error": "Unauthorized"}, status=401)
 
+        if user.role != "ADMIN":
+            return Response({"error": "Forbidden"}, status=403)
+
         users = User.objects.filter(is_active=True)
+
         data = [
             {
                 "id": u.id,
-                "first_name": u.first_name,
-                "last_name": u.last_name,
-                "middle_name": u.middle_name,
                 "email": u.email,
-                "created_at": u.created_at,
+                "role": u.role
             }
             for u in users
         ]
-        return Response(data, status=status.HTTP_200_OK)
+
+        return Response(data)
 
 class LoginView(APIView):
 

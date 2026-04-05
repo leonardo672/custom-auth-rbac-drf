@@ -1,13 +1,29 @@
 from django.db import models
 import uuid
 
+
 class User(models.Model):
+    ROLE_USER = "USER"
+    ROLE_ADMIN = "ADMIN"
+
+    ROLE_CHOICES = [
+        (ROLE_USER, "User"),
+        (ROLE_ADMIN, "Admin"),
+    ]
+
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, blank=True)
 
     email = models.EmailField(unique=True)
     password_hash = models.CharField(max_length=255)
+
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default=ROLE_USER
+    )
+
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
